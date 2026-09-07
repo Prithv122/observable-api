@@ -86,8 +86,8 @@ effects by measuring one request at a time on an idle server, alternating flushe
 34 ms cold, 9.5 ms warm.
 
 Three things I'm careful about when I present those. The absolute numbers are noisy on a
-laptop — baseline throughput measured 162, 188 and 213 across three runs — so I quote the
-ratios and say the run length was chosen to make them legible. The warm 9.5 ms is mostly
+laptop — baseline throughput measured 162, 170 and 213 RPS across three 60-second runs
+before I settled on 120-second runs — so I quote the ratios, which held across every run. The warm 9.5 ms is mostly
 HTTP and Docker Desktop's Windows networking, not Redis, so the honest claim is the ~24 ms
 *difference*, not the absolute. And the third scenario's latency isn't comparable to the
 others at all, because 74% of its requests were 429s and rejecting is much cheaper than
@@ -97,7 +97,7 @@ The traffic profile matters as much as the numbers: cohort popularity is Zipf-di
 newest cohort ~30% of requests. Benchmarking a cache against uniformly random keys would
 have produced a hit rate that's an artifact of the key space and TTL, and meaningless.
 
-Correctness separately: 70 tests, 100% statement coverage, run against a real Redis rather
+Correctness separately: 68 tests, 100% statement coverage, run against a real Redis rather
 than a mock — everything interesting about the limiter and the cache is Lua executing inside
 Redis, and a mock would only test my own assumptions about it.
 
