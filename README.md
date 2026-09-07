@@ -194,8 +194,9 @@ On Windows, `tmp_path` fixtures need an explicit base directory:
 uv run python scripts/benchmark.py
 ```
 
-Takes about 8 minutes: it recreates the API container per scenario, flushes Redis between
-runs so none inherits a warm cache, drives Locust headless, and writes CSVs plus
+Three 120-second Locust runs plus container restarts between them, then a single-request
+cold/warm pass — budget ten minutes or so. It recreates the API container per scenario,
+flushes Redis between runs so none inherits a warm cache, and writes the raw CSVs plus
 `summary.json` to `loadtest/`.
 
 ### Without Docker
