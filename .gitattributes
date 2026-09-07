@@ -1,0 +1,6 @@
+# This repo is developed on Windows and runs inside Linux containers. Without this, a fresh
+# clone with core.autocrlf=true checks out docker-entrypoint.sh with CRLF line endings, and
+# the shebang becomes "#!/bin/sh\r" -- which Linux reports as "no such file or directory",
+# naming a file that plainly exists. Anything the image executes must be LF.
+* text=auto eol=lf
+*.duckdb binary
