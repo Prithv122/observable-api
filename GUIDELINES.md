@@ -22,11 +22,11 @@ Locust (load generation) + pytest/httpx + Docker Compose.
 
 ## Acceptance criteria
 
-- [ ] Rate limiting with correct headers (`X-RateLimit-*`, `Retry-After`) and `429` behaviour
-- [ ] Response caching with measured hit-rate and latency effect
-- [ ] `structlog` JSON logs carrying a request id through every log line of a request
-- [ ] Prometheus `/metrics` exposing request rate, error rate, latency histogram
-- [ ] Locust load test, run for real, with results (p50/p95/p99, RPS) in README §5
+- [x] Rate limiting with correct headers (`X-RateLimit-*`, `Retry-After`) and `429` behaviour
+- [x] Response caching with measured hit-rate and latency effect
+- [x] `structlog` JSON logs carrying a request id through every log line of a request
+- [x] Prometheus `/metrics` exposing request rate, error rate, latency histogram
+- [x] Locust load test, run for real, with results (p50/p95/p99, RPS) in README §5
 - [ ] Ship gate passes (`/ship`)
 
 ## Project-specific notes
