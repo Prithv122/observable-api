@@ -22,7 +22,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Match
 
-from .metrics import Metrics
+from .metrics import Metrics, exposition_registry
 from .ratelimit import RateLimiter
 
 log = structlog.get_logger(__name__)
@@ -165,4 +165,6 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
 
 def metrics_response(metrics: Metrics) -> Response:
-    return Response(generate_latest(metrics.registry), media_type=CONTENT_TYPE_LATEST)
+    return Response(
+        generate_latest(exposition_registry(metrics.registry)), media_type=CONTENT_TYPE_LATEST
+    )

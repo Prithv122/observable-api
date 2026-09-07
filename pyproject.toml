@@ -14,7 +14,7 @@ dependencies = [
     "uvicorn[standard]>=0.52.4",
 ]
 
-# Most projects here ship a CLI. Entry points REQUIRE a real build backend —
+# Most projects here ship a CLI. Entry points REQUIRE a real build backend --
 # a uv virtual project ([tool.uv] package = false) installs nothing, so the
 # documented command fails with "No module named ..." even while tests pass
 # (pytest's pythonpath hides it). Bit us on A1, nearly again on A3.
@@ -27,7 +27,7 @@ observable-api = "observableapi.cli:main"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-# ⚠️ When /new-project renames src/app, update BOTH the line below AND the
+# NOTE: When /new-project renames src/app, update BOTH the line below AND the
 # [project.scripts] target above.
 [tool.hatch.build.targets.wheel]
 packages = ["src/observableapi"]
