@@ -5,6 +5,7 @@ description = "Rate-limited FastAPI service with caching, structured logging, Pr
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "duckdb>=1.5.5",
     "fastapi>=0.141.1",
     "prometheus-client>=0.26.0",
     "pydantic-settings>=2.15.0",
@@ -46,6 +47,12 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 addopts = "-q"
 asyncio_mode = "auto"
+
+[tool.coverage.report]
+exclude_also = [
+    # The script guard is unreachable under pytest and is not worth a contrived test.
+    "if __name__ == .__main__.:",
+]
 
 [tool.ruff]
 line-length = 100

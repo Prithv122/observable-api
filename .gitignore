@@ -44,3 +44,4 @@ mlruns/
 Thumbs.db
 .vscode/
 .idea/
+data/
