@@ -9,6 +9,20 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    # The limiter and the cache are Lua running inside Redis. Mocking that would test the
+    # mock's opinion of Redis, which is exactly where the bugs are -- so CI runs a real one.
+    services:
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -29,4 +43,34 @@ jobs:
           uv run ruff format --check .
 
       - name: Test
+        env:
+          TEST_REDIS_URL: redis://localhost:6380/15
         run: uv run pytest --cov=src --cov-report=term-missing
+
+  docker:
+    # The image is the deployment artifact: if it stops building, the documented "how to
+    # run" is broken no matter how green the test job is.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the image
+        run: docker build -t observable-api:ci .
+
+      - name: Start the stack and check it serves
+        run: |
+          docker network create obsapi
+          docker run -d --name redis --network obsapi redis:8-alpine
+          docker run -d --name api --network obsapi -p 8000:8000 \
+            -e REDIS_URL=redis://redis:6379/0 observable-api:ci
+          for i in $(seq 1 30); do
+            if curl -fs http://localhost:8000/healthz > /dev/null; then break; fi
+            sleep 2
+          done
+          curl -fs http://localhost:8000/healthz | tee /dev/stderr | grep -q '"status":"ok"'
+          curl -fs http://localhost:8000/cohorts/2026-01-05/retention | grep -q 'cohort_size'
+          curl -fs http://localhost:8000/metrics | grep -q 'http_request_duration_seconds'
+
+      - name: Show API logs on failure
+        if: failure()
+        run: docker logs api

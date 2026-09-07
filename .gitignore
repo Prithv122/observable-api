@@ -45,3 +45,6 @@ Thumbs.db
 .vscode/
 .idea/
 data/
+
+# Load-test scratch (summary.json and the aggregated CSVs are committed deliberately)
+.pytest-tmp/

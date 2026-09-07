@@ -8,7 +8,7 @@ import json
 import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
-from prometheus_client import CollectorRegistry
+from prometheus_client import CollectorRegistry, generate_latest
 from starlette.datastructures import Headers
 from starlette.middleware import Middleware
 from starlette.requests import Request
@@ -16,7 +16,7 @@ from starlette.requests import Request
 from conftest import client_for, make_settings
 from observableapi.app import create_app
 from observableapi.logging_setup import configure_logging
-from observableapi.metrics import Metrics
+from observableapi.metrics import Metrics, exposition_registry
 from observableapi.middleware import ObservabilityMiddleware, client_id, route_template
 from observableapi.warehouse import Warehouse
 
@@ -116,3 +116,28 @@ async def test_scrapes_do_not_count_themselves(redis, warehouse: Warehouse) -> N
         body = (await client.get("/metrics")).text
 
     assert 'route="/metrics"' not in body
+
+
+def test_exposition_registry_is_the_local_one_without_multiprocess_mode(monkeypatch) -> None:
+    monkeypatch.delenv("PROMETHEUS_MULTIPROC_DIR", raising=False)
+    registry = CollectorRegistry()
+
+    assert exposition_registry(registry) is registry
+
+
+def test_exposition_registry_aggregates_across_workers_in_multiprocess_mode(
+    tmp_path, monkeypatch
+) -> None:
+    """With several workers, /metrics must read every worker's files, not just its own.
+
+    A single worker's registry answering the scrape is what made consecutive scrapes of the
+    4-worker stack disagree (97, then 74, for the same counter). Here the returned registry
+    must be a different, aggregating one -- and must render without error.
+    """
+    monkeypatch.setenv("PROMETHEUS_MULTIPROC_DIR", str(tmp_path))
+    registry = CollectorRegistry()
+
+    aggregated = exposition_registry(registry)
+
+    assert aggregated is not registry
+    assert generate_latest(aggregated) == b""  # empty dir, but a working collector
