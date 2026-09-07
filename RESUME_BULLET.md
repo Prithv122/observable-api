@@ -29,11 +29,11 @@ Form: **action → technical specifics → measured outcome.** Numbers or it doe
   dropped"; paired with structlog JSON logs that carry a request id through every layer via
   contextvars.
 
-- Cut warehouse build time from a projected ~5 minutes to **0.23 s for 105,638 rows** by
-  replacing DuckDB row-at-a-time `executemany` (profiled at ~2.9 ms/row) with a bulk CSV
-  `COPY`; test suite runtime dropped from 42 s to 1.3 s.
+- Cut warehouse build time from a projected ~11.5 minutes to **0.23 s for 105,638 rows** by
+  profiling DuckDB's row-at-a-time `executemany` to 6.5 ms/row and replacing it with a bulk
+  CSV `COPY`; the warehouse test module went from 42.1 s to 1.2 s.
 
-- Shipped with **70 tests at 100% statement coverage** run against a real Redis (never
+- Shipped with **68 tests at 100% statement coverage** run against a real Redis (never
   mocked, since the limiter and cache logic is Lua executing inside Redis) plus a CI job
   that builds the production image and exercises the live endpoints.
 

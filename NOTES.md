@@ -7,19 +7,20 @@ Not for recruiters — for me, six months from now, in an interview.
 
 ## Log
 
-### 2026-09-07 — DuckDB `executemany` is ~2.9 ms per row
+### 2026-09-07 — DuckDB `executemany` is ~6.5 ms per row
 
 - **Tried:** the obvious loader — `con.executemany("INSERT INTO events VALUES (?,?,?,?,?)", rows)`.
 - **Broke:** the warehouse test suite took **42 seconds** for a 2,412-row fixture. Profiled
   it expecting the Python generator to be the cost. It wasn't: generation was 0.02 s,
-  `executemany` was **15.8 s**. At that rate the default 105k-row warehouse would take
-  roughly five minutes to build.
+  `executemany` was **15.8 s** — 6.5 ms per row. At that rate the default 105,638-row
+  warehouse would take roughly **11.5 minutes** to build.
 - **Tried next:** wrapping it in an explicit `BEGIN`/`COMMIT` (18.1 s — *worse*), then
   chunked multi-row `VALUES` (12.0 s — better, still awful). Reduced it to a minimal case:
-  even a two-column `INSERT` of 2,412 trivial rows took 6.9 s. So it is per-statement
-  overhead, not type conversion.
+  even a two-column `INSERT` of 2,412 trivial rows took 6.9 s (2.9 ms/row). Since stripping
+  the columns and the date/timestamp types only halved it, this is per-statement overhead,
+  not type conversion.
 - **Fixed by:** writing the rows to a temporary CSV and using `COPY events FROM …`.
-  **105,638 rows in 0.23 s.** Test suite went 42 s → 1.3 s.
+  **105,638 rows in 0.23 s.** `tests/test_warehouse.py` went 42.1 s → 1.2 s.
 - **Learned:** DuckDB is columnar and treats each INSERT as its own transaction. Row-at-a-
   time insertion into an OLAP engine is its pathological case, and the fix is not a faster
   loop — it's handing it one bulk load. Worth remembering the *shape* of the mistake:

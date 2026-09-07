@@ -137,8 +137,8 @@ def _populate(con: duckdb.DuckDBPyConnection, spec: GeneratorSpec) -> int:
 
     Via a CSV and ``COPY``, not ``executemany``. DuckDB is columnar and treats each INSERT
     as its own transaction: measured on this machine, row-at-a-time insertion runs at about
-    2.9 ms per row, so the default warehouse would take roughly five minutes to build.
-    The same rows through ``COPY`` land in 0.23 s. Handing an OLAP engine one bulk load
+    6.5 ms per row, so the default warehouse would take roughly 11.5 minutes to build. The
+    same 105,638 rows through ``COPY`` land in 0.23 s. Handing an OLAP engine one bulk load
     instead of 100k single-row statements is the whole difference. See NOTES.md.
     """
     rows = _generate_rows(spec)

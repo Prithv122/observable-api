@@ -95,7 +95,7 @@ threadpool.
 | Metrics under 4 workers | `prometheus_client` multiprocess mode | Per-process registry | Each worker holds its own counters and a scrape is answered by whichever worker gets the connection. Consecutive scrapes of the same counter returned **97 and then 74**. With mmap-backed aggregation, Prometheus's throttled count (26,271) now matches Locust's independent 429 count exactly. |
 | Instrumentation | Hand-rolled collectors | `prometheus-fastapi-instrumentator` | The `cache` label on the latency histogram is the whole point: it separates "requests got slower" from "the hit rate dropped". No generic instrumentator knows about this application's cache. |
 | DuckDB access | `.cursor()` per query, in the threadpool | One shared connection | DuckDB connections are not thread-safe, and it is synchronous and CPU-bound — calling it on the event loop would block every other in-flight request for the length of the aggregation. |
-| Warehouse loading | CSV + `COPY` | `executemany` | Measured at ~2.9 ms **per row**: the default warehouse would take ~5 minutes to build. The same 105k rows through `COPY` land in 0.23 s. |
+| Warehouse loading | CSV + `COPY` | `executemany` | Measured at **6.5 ms per row** (15.8 s for a 2,412-row fixture): the default warehouse would take ~11.5 minutes to build. The same 105,638 rows through `COPY` land in **0.23 s**. |
 
 ## 5. Results
 
@@ -128,16 +128,17 @@ Three things worth stating plainly rather than dressing up:
   throughput than row 2 (299 vs 508 RPS) is the limiter's cost: one extra Redis round trip
   on *every* request, throttled or not, which is expensive over Docker Desktop's network
   stack. The row is here to show the limiter working under load, not to compare latency.
-- **Absolute numbers on this hardware are noisy.** Baseline throughput measured 162, 188
-  and 213 RPS across three runs. The 120 s run length was chosen to make the comparison
-  legible; the ratios held across all runs, the absolute figures did not.
+- **Absolute numbers on this hardware are noisy.** Baseline throughput measured 162, 170
+  and 213 RPS across three 60-second runs, and 188 in the 120-second run reported above.
+  The longer run length was chosen because of that spread; the ratios held across every
+  run, the absolute figures did not.
 - **The warm-hit median of 9.5 ms is mostly not Redis.** It is HTTP plus Docker Desktop's
   Windows networking; Redis itself is a sub-millisecond round trip. The honest claim is the
   *difference* — the DuckDB aggregation costs ~24 ms that the cache removes.
 
 Correctness, not performance:
 
-- **70 tests, 100% statement coverage**, run against a real Redis — never a mock, because
+- **68 tests, 100% statement coverage**, run against a real Redis — never a mock, because
   every interesting property (atomic check-and-increment, compare-and-delete lock release,
   `TIME` inside a script, TTL behaviour) lives in Lua inside Redis.
 - Prometheus's throttled count and Locust's independently-counted 429s agree exactly
