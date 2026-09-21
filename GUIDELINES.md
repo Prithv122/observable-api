@@ -27,7 +27,7 @@ Locust (load generation) + pytest/httpx + Docker Compose.
 - [x] `structlog` JSON logs carrying a request id through every log line of a request
 - [x] Prometheus `/metrics` exposing request rate, error rate, latency histogram
 - [x] Locust load test, run for real, with results (p50/p95/p99, RPS) in README §5
-- [ ] Ship gate passes (`/ship`)
+- [ ] Ship gate passes
 
 ## Project-specific notes
 
